@@ -136,5 +136,15 @@ namespace DLL_ripasso
 
             }
         }
+        public void AggiuntaRecord(string filecsv, string c, string p, string r, string n, string a, string d, string i, string l, string la, string v)         //funzione che aggiunge un record alla fine con i dati dati dall utente
+        {
+
+            string value = $"{c.ToUpper()};{p.ToUpper()};{r.ToUpper()};{n.ToUpper()};{a.ToUpper()};{d.ToUpper()};{i.ToUpper()};{l.ToUpper()};{la.ToUpper()};{v.ToUpper()};";
+
+            using (StreamWriter writer = File.AppendText(filecsv))
+            {
+                writer.WriteLine(value);
+            }
+        }
     }
 }
