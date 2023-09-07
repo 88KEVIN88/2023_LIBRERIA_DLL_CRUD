@@ -162,5 +162,43 @@ namespace DLL_ripasso
 
             return data.ToArray();
         }
+        public string[][] FiltraDati(string filecsv, int scelta, string comune = null, string provincia = null)
+        {
+            List<string[]> data = new List<string[]>();
+
+            using (StreamReader sr = new StreamReader(filecsv))
+            {
+                while (!sr.EndOfStream)
+                {
+                    string line = sr.ReadLine();
+                    string[] campi = line.Split(';');
+
+                    bool aggiungi = false;
+
+                    switch (scelta)
+                    {
+                        case 1:
+                            if (campi[0].ToUpper().Contains(comune.ToUpper())) // Filtra per campo COMUNE
+                            {
+                                aggiungi = true;
+                            }
+                            break;
+                        case 2:
+                            if (campi[1].ToUpper().Contains(provincia.ToUpper())) // Filtra per PROVINCIA
+                            {
+                                aggiungi = true;
+                            }
+                            break;
+                    }
+
+                    if (aggiungi)
+                    {
+                        data.Add(campi);
+                    }
+                }
+            }
+
+            return data.ToArray();
+        }
     }
 }
