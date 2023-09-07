@@ -40,7 +40,23 @@ namespace DLL_ripasso
              }
              return cont;
         }
-
+        public int Lunghezza(string filecsv) //funzione che calcola la lunghezza massima di un record
+        {
+            int[] recordl=new int[1000];
+            int Maxverstappen;
+            using(StreamReader sr = new StreamReader(filecsv))
+            {
+                string linea;
+                int i = 0;
+                while((linea = sr.ReadLine()) != null)
+                {
+                    recordl[i]=linea.Length; 
+                    i++;
+                }
+                Maxverstappen = recordl.Max();
+                return Maxverstappen;
+            }
+        }
 
     }
 }
