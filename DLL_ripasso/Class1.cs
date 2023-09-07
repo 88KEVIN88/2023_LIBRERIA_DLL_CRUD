@@ -83,7 +83,7 @@ namespace DLL_ripasso
                 }
             }
 
-            int k = 0;
+            int k = maxl.Length;
             return maxl[k].ToString() + " ;"  ;
             k++;
 
@@ -145,6 +145,22 @@ namespace DLL_ripasso
             {
                 writer.WriteLine(value);
             }
+        }
+        public string[][] Stampacampi(string filecsv)
+        {
+            List<string[]> data = new List<string[]>();
+
+            using (StreamReader rd = new StreamReader(filecsv))
+            {
+                while (!rd.EndOfStream)
+                {
+                    var line = rd.ReadLine();       // Leggo la linea
+                    var valori = line.Split(';');   // La divido nei campi
+                    data.Add(valori);               // Aggiungo i dati all'elenco
+                }
+            }
+
+            return data.ToArray();
         }
     }
 }
