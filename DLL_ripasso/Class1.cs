@@ -200,5 +200,31 @@ namespace DLL_ripasso
 
             return data.ToArray();
         }
+        public int RicercaIndex(string filecsv, string ricercato)
+        {
+            int retu = -2;
+            int index = 0;
+
+            StreamReader sr = new StreamReader(filecsv);
+            string line = sr.ReadLine();
+            while (line != null)
+            {
+                string[] split = line.Split(';');
+                if (index != 0)
+                {
+                    if (split[0] == ricercato.ToUpper())
+                    {
+                        retu = index;
+                        break;
+                    }
+                    retu = -1;
+                }
+                index++;
+                line = sr.ReadLine();
+
+            }
+            sr.Close();
+            return retu;
+        }
     }
 }
