@@ -10,9 +10,10 @@ namespace DLL_ripasso
     public class Class1
     {
         public Random rand= new Random();
-        public void Add(bool fatto,string filecsv) //Funzione che aggiunge un campo alla fine del record
+        public char delimiter =  ';';
+        public int Add(int fatto,string filecsv) //Funzione che aggiunge un campo alla fine del record
         {
-            if(fatto == false)
+            if(fatto == 0)
             {
                 string[] csvline = File.ReadAllLines(filecsv);
 
@@ -20,10 +21,26 @@ namespace DLL_ripasso
                 {
                     csvline[i] += $";Mio valore:{rand.Next(10, 21)};0,";
                 }
-                fatto = true;
+                fatto = 1;
                 File.WriteAllLines(filecsv, csvline);
 
             }
+            return fatto;
+        }   
+        public int Contatore(string filecsv) //funzione che conta i campi del file
+        {
+             int cont = 0;
+             using(StreamReader sr = new StreamReader(filecsv))
+             {
+                string line = sr.ReadLine();
+                if(!String.IsNullOrEmpty(line))
+                {
+                   cont= line.Split(delimiter).Length;
+                }
+             }
+             return cont;
         }
+
+
     }
 }
