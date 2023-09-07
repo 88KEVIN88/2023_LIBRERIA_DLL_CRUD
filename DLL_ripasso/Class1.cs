@@ -226,5 +226,34 @@ namespace DLL_ripasso
             sr.Close();
             return retu;
         }
+        public void Modifica(string ric,string filecsv,string c, string p, string r, string n, string a, string d, string i, string l, string la, string v)
+        {
+            
+            int dimensione = 0;
+            string[] newvalori = new string[11];
+            newvalori[0] = c;//comune
+            newvalori[1] = p;//provincia
+            newvalori[2] = r;//regione
+            newvalori[3] = n;//nome
+            newvalori[4] = a;//anno
+            newvalori[5] = d;//data
+            newvalori[6] = i;//identificatori
+            newvalori[7] = l;//longitudine
+            newvalori[8] = la;//latidudinestring
+            string[] file = File.ReadAllLines(filecsv);
+            StreamWriter sw = new StreamWriter(filecsv);
+            for (int j = 0; j < RicercaIndex(filecsv, ric); j++)
+            {
+                if (j == RicercaIndex(filecsv, ric))
+                {
+                    sw.Write(newvalori[dimensione] + ";");
+                    dimensione++;
+
+                }
+            }
+
+            sw.Close();
+
+        }
     }
 }
