@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,23 +14,24 @@ namespace DLL_ripasso
     {
         public Random rand= new Random();
         public char delimiter =  ';';
-        public int Add(int fatto,string filecsv) //Funzione che aggiunge un campo alla fine del record
+        public string filecsv = @"relitti.csv";
+        public void Add()
         {
-            if(fatto == 0)
-            {
-                string[] csvline = File.ReadAllLines(filecsv);
+            string[] CsvLines = File.ReadAllLines(filecsv); // Legge tutte le linee del file CSV
 
-                for(int i = 0; i < csvline.Length; i++) 
-                {
-                    csvline[i] += $";Mio valore:{rand.Next(10, 21)};0,";
-                }
-                fatto = 1;
-                File.WriteAllLines(filecsv, csvline);
+            
+            for (int i = 0; i < CsvLines.Length; i++)
+            {
+                // Aggiunge il tuo campo con un numero casuale tra 10 e 20 a ciascuna riga + un campo per la cancellazione logica ed un campo univoco
+                CsvLines[i] += $";Mio valore:{rand.Next(10, 21)};0;{i}";
 
             }
-            return fatto;
-        }   
-        public int Contatore(string filecsv) //funzione che conta i campi del file
+            // Sovrascrive il file CSV con le linee aggiornate
+            File.WriteAllLines(filecsv, CsvLines);
+
+           
+        }
+        public int Contatore() //funzione che conta i campi del file
         {
              int cont = 0;
              using(StreamReader sr = new StreamReader(filecsv))
@@ -41,7 +44,7 @@ namespace DLL_ripasso
              }
              return cont;
         }
-        public int Lunghezza(string filecsv) //funzione che calcola la lunghezza massima di un record
+        public int Lunghezza() //funzione che calcola la lunghezza massima di un record
         {
             int[] recordl=new int[1000];
             int Maxverstappen;
@@ -58,95 +61,95 @@ namespace DLL_ripasso
                 return Maxverstappen;
             }
         }
-        public string Lunghezzacampi(string filecsv) //funzione che calcola la lunghezza dei singola campi
+        public int[] Lunghezzacampi()
         {
-            int a = 0;
-            int[] maxl=new int[1000];
+            int[] maxl = new int[1000];
             string[] linee;
             string[] header;
-            string re;
+
             linee = File.ReadAllLines(filecsv);
-            if(linee.Length > 0)
+
+            if (linee.Length > 0)
             {
                 header = linee[0].Split(delimiter);
                 maxl = new int[header.Length];
-                
-                for(int i = 0; i < maxl.Length; i++)
+
+                for (int i = 0; i < maxl.Length; i++)
                 {
                     string[] campi = linee[i].Split(delimiter);
 
-                    for(int j = 0; j < campi.Length; j++)
+                    for (int j = 0; j < campi.Length; j++)
                     {
                         maxl[j] = Math.Max(maxl[j], campi[j].Length);
-                        a = campi.Length;
                     }
                 }
             }
 
-            int k = maxl.Length;
-            return maxl[k].ToString() + " ;"  ;
-            k++;
-
+            return maxl;
         }
-       
-        public int GetLenght(string filecsv)   //funzione che calcola la lunghezza massima di una riga per definirla come lunghezza standart del file
+
+        public int GetLenght()   //funzione che calcola la lunghezza massima di una riga per definirla come lunghezza standart del file
         {
-            StreamReader rd = new StreamReader(filecsv);
             int Maxrecordlenght = 0;
 
-            while (!rd.EndOfStream)
+            using (StreamReader rd = new StreamReader(filecsv))
             {
-                string line = rd.ReadLine();      //leggo la linea
-
-                int recordLength = line.Length; // Calcolo della lunghezza del record
-
-
-                if (recordLength > Maxrecordlenght)//se la precendente é minore di quella attuale le scambio
+                while (!rd.EndOfStream)
                 {
-                    Maxrecordlenght = recordLength; // Aggiornamento della lunghezza massima 
+                    string line = rd.ReadLine(); // leggi la linea
+                    int recordLength = line.Length; // Calcola la lunghezza del record
+
+                    if (recordLength > Maxrecordlenght)
+                    {
+                        Maxrecordlenght = recordLength; // Aggiorna la lunghezza massima 
+                    }
                 }
             }
+
             return Maxrecordlenght;
         }
 
-        public int Standart(string filecsv) //funzione cha imposta la lunghezza massima del record
+        public int Standart()
         {
+            int maxRecordLength = GetLenght(); // Calcolo della lunghezza massima di ogni record
+
             using (StreamReader rd = new StreamReader(filecsv))
             {
-                StringBuilder newcsv = new StringBuilder(); // Creazione di un oggetto StringBuilder per contenere il nuovo file CSV
-
-
-                int maxRecordLength = GetLenght(filecsv);// Calcolo della lunghezza massima di ogni record
-
-                // Lettura del file CSV e inserimento degli spazi necessari per rendere fissa la dimensione di ogni record
-                rd.BaseStream.Seek(0, SeekOrigin.Begin);
-                while (!rd.EndOfStream)
+                using (StreamWriter sw = new StreamWriter("output.csv")) // Apertura del nuovo file CSV in modalità scrittura
                 {
-                    string line = rd.ReadLine();
-
-
-                    line = line.PadRight(maxRecordLength);// Aggiunta degli spazi necessari per rendere fissa la lunghezza del record
-
-
-                    newcsv.AppendLine(line);// Aggiunta del record al nuovo file CSV
-
-                    File.WriteAllText("output.csv", newcsv.ToString());// Scrittura del nuovo file CSV
+                    while (!rd.EndOfStream)
+                    {
+                        string line = rd.ReadLine();
+                        line = line.PadRight(maxRecordLength); // Aggiunta degli spazi necessari per rendere fissa la lunghezza del record
+                        sw.WriteLine(line); // Scrittura del record nel nuovo file CSV
+                    }
+                    sw.Close();
                 }
-                return maxRecordLength;
-
+                rd.Close();
             }
+            
+
+            // Sovrascrive il file CSV originale con il nuovo formato
+            File.Copy("output.csv", filecsv, true);
+            File.Delete("output.csv"); // Rimuovi il file temporaneo
+
+            return maxRecordLength;
         }
-        public void AggiuntaRecord(string filecsv, string c, string p, string r, string n, string a, string d, string i, string l, string la, string v)         //funzione che aggiunge un record alla fine con i dati dati dall utente
+        public void AggiuntaRecord( string c, string p, string r, string n, string a, string d, string i, string l, string la, string v)         //funzione che aggiunge un record alla fine con i dati dati dall utente
         {
 
             string value = $"{c.ToUpper()};{p.ToUpper()};{r.ToUpper()};{n.ToUpper()};{a.ToUpper()};{d.ToUpper()};{i.ToUpper()};{l.ToUpper()};{la.ToUpper()};{v.ToUpper()};";
 
-            using (StreamWriter writer = File.AppendText(filecsv))
+            using (FileStream csvRanWriter = new FileStream(filecsv, FileMode.Open, FileAccess.ReadWrite))
             {
-                writer.WriteLine(value);
+                byte[] bytes = Encoding.UTF8.GetBytes(value);
+                csvRanWriter.Seek(0, SeekOrigin.End);
+                csvRanWriter.Write(bytes, 0, bytes.Length);
+                csvRanWriter.Close();
             }
+
         }
-        public string[][] Stampacampi(string filecsv)
+        public string[][] Stampacampi()
         {
             List<string[]> data = new List<string[]>();
 
@@ -162,98 +165,84 @@ namespace DLL_ripasso
 
             return data.ToArray();
         }
-        public string[][] FiltraDati(string filecsv, int scelta, string comune = null, string provincia = null)
+        
+    
+       
+        public  List<string[]> Ricerca(string comune, string provincia, int scelta)
         {
-            List<string[]> data = new List<string[]>();
+            List<string[]> risultati = new List<string[]>();
 
             using (StreamReader sr = new StreamReader(filecsv))
             {
+                string line;
+              
+
                 while (!sr.EndOfStream)
                 {
-                    string line = sr.ReadLine();
+                    line = sr.ReadLine();
                     string[] campi = line.Split(';');
-
-                    bool aggiungi = false;
 
                     switch (scelta)
                     {
                         case 1:
-                            if (campi[0].ToUpper().Contains(comune.ToUpper())) // Filtra per campo COMUNE
+                            if (campi[0].ToUpper().Contains(comune.ToUpper())) //solo campo COMUNE
                             {
-                                aggiungi = true;
+                                risultati.Add(campi);
+
                             }
                             break;
+
+
                         case 2:
-                            if (campi[1].ToUpper().Contains(provincia.ToUpper())) // Filtra per PROVINCIA
+                            if (campi[1].ToUpper().Contains(provincia.ToUpper()))//solo PROVINCIA
                             {
-                                aggiungi = true;
+                                risultati.Add(campi);
+                                break;
                             }
+
                             break;
+                        case 3:
+                            if (campi[0].ToUpper().Contains(comune.ToUpper()) && campi[1].ToUpper().Contains(provincia.ToUpper()))//solo REGIONE
+                            {
+                                risultati.Add(campi);
+                                break;
+                            }
+
+                            break;
+
+
                     }
 
-                    if (aggiungi)
-                    {
-                        data.Add(campi);
-                    }
+
                 }
-            }
+                
+                
+                
 
-            return data.ToArray();
+            }
+            return risultati;
         }
-        public int RicercaIndex(string filecsv, string ricercato)
+        public void Modifica(int indice,string c, string p,string r,string n,string a, string d,string i,string l,string la,string v)
         {
-            int retu = -2;
-            int index = 0;
+             string[] record=File.ReadAllLines(filecsv);
+             record[indice] = $"{c.ToUpper()};{p.ToUpper()};{r.ToUpper()};{n.ToUpper()};{a.ToUpper()};{d.ToUpper()};{i.ToUpper()};{l.ToUpper()};{la.ToUpper()};{v.ToUpper()};0;{indice}";
+             File.WriteAllLines(filecsv, record);
 
-            StreamReader sr = new StreamReader(filecsv);
-            string line = sr.ReadLine();
-            while (line != null)
-            {
-                string[] split = line.Split(';');
-                if (index != 0)
-                {
-                    if (split[0] == ricercato.ToUpper())
-                    {
-                        retu = index;
-                        break;
-                    }
-                    retu = -1;
-                }
-                index++;
-                line = sr.ReadLine();
-
-            }
-            sr.Close();
-            return retu;
         }
-        public void Modifica(string ric,string filecsv,string c, string p, string r, string n, string a, string d, string i, string l, string la, string v)
+        public void Cancellazione(int indice)
         {
-            
-            int dimensione = 0;
-            string[] newvalori = new string[11];
-            newvalori[0] = c;//comune
-            newvalori[1] = p;//provincia
-            newvalori[2] = r;//regione
-            newvalori[3] = n;//nome
-            newvalori[4] = a;//anno
-            newvalori[5] = d;//data
-            newvalori[6] = i;//identificatori
-            newvalori[7] = l;//longitudine
-            newvalori[8] = la;//latidudinestring
-            string[] file = File.ReadAllLines(filecsv);
-            StreamWriter sw = new StreamWriter(filecsv);
-            for (int j = 0; j < RicercaIndex(filecsv, ric); j++)
+            string[] record = File.ReadAllLines(filecsv);
+            for(int i = 0; i < indice; i++)
             {
-                if (j == RicercaIndex(filecsv, ric))
-                {
-                    sw.Write(newvalori[dimensione] + ";");
-                    dimensione++;
-
+                string[] linea;
+                if(indice == i) 
+                { 
+                    
                 }
             }
-
-            sw.Close();
-
         }
+
     }
+    
+   
 }
